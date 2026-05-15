@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songkran Lucky Draw - สุ่มรางวัลสงกรานต์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --water-blue: #00d2ff;
+            --deep-ocean: #3a7bd5;
+            --flower-pink: #ff4bb4;
+            --thai-gold: #ffd700;
+            --white-soft: rgba(255, 255, 255, 0.9);
+        }
+
+        * { box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* ตกแต่งลายไทยจางๆ */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/white-diamond.png');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .container {
+            background: var(--white-soft);
+            padding: 35px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.5);
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            border: 5px solid #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: var(--deep-ocean);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        p.subtitle {
+            color: var(--flower-pink);
+            font-weight: 600;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        /* Input Area */
+        textarea {
+            width: 100%;
+            height: 180px;
+            border: 2px solid var(--water-blue);
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+            background: #f0faff;
+        }
+        textarea:focus { box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); border-color: var(--deep-ocean); }
+
+        .setting-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px dashed var(--water-blue);
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 2px solid var(--water-blue);
+            color: var(--deep-ocean);
+            font-weight: 600;
+            outline: none;
+        }
+
+        /* ปุ่มสไตล์สงกรานต์ */
+        .btn-splash {
+            background: linear-gradient(to bottom, var(--flower-pink), #ff1a8c);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            box-shadow: 0 8px 0px #c71585;
+            margin-bottom: 10px;
+        }
+        .btn-splash:hover { transform: translateY(2px); box-shadow: 0 5px 0px #c71585; opacity: 0.9; }
+        .btn-splash:active { transform: translateY(8px); box-shadow: 0 0px 0px #c71585; }
+
+        /* Countdown */
+        #countdown-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 210, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            flex-direction: column;
+        }
+        .timer-text {
+            font-size: 150px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+            animation: bounceIn 1s infinite;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* Winner Cards */
+        .winner-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .winner-card {
+            background: white;
+            color: var(--deep-ocean);
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            border: 3px solid var(--thai-gold);
+            box-shadow: 5px 5px 0px var(--water-blue);
+            animation: popIn 0.5s ease forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); rotate: -10deg; }
+            100% { transform: scale(1); rotate: 0deg; }
+        }
+
+        .hidden { display: none !important; }
+        .back-btn { color: #666; cursor: pointer; font-size: 14px; margin-top: 15px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="setup-view">
+    <h1>💦 สงกรานต์สำราญใจ</h1>
+    <p class="subtitle">สาดน้ำ สาดรางวัล กระจายความสุข!</p>
+    
+    <textarea id="nameInput" placeholder="ใส่ชื่อเพื่อนพนักงานที่นี่...&#10;ก๊อปปี้จาก Excel มาวางได้เลย (1 ชื่อต่อบรรทัด)"></textarea>
+
+    <div class="setting-box">
+        <span>เลือกจำนวนผู้โชคดี:</span>
+        <select id="luckyAmount">
+            <option value="1">1 ท่าน</option>
+            <option value="5">5 ท่าน</option>
+            <option value="10">10 ท่าน</option>
+            <option value="15">15 ท่าน</option>
+        </select>
+    </div>
+
+    <button class="btn-splash" onclick="toDrawPage()">เข้าสู่หน้าสุ่มรางวัล ✨</button>
+</div>
+
+<div class="container hidden" id="draw-view">
+    <h1 id="title-text">เตรียมตัวรับโชค!</h1>
+    <p id="desc-text" class="subtitle">ใครจะเป็นผู้โชคดีในเทศกาลสาดน้ำนี้?</p>
+    
+    <div id="result-area" class="winner-list"></div>
+
+    <div style="margin-top: 30px;">
+        <button class="btn-splash" id="spinBtn" onclick="startSongkranDraw()">เริ่มสาดความโชคดี! 💦</button>
+        <span class="back-btn" onclick="toSetupPage()">← กลับไปตั้งค่ารายชื่อ</span>
+    </div>
+</div>
+
+<div id="countdown-overlay">
+    <div class="timer-text" id="timer-val">3</div>
+    <h2 style="color: white; margin-top: 20px;">ระวัง... เตรียมเปียก!</h2>
+</div>
+
+<script>
+    let names = [];
+
+    function toSetupPage() {
+        document.getElementById('setup-view').classList.remove('hidden');
+        document.getElementById('draw-view').classList.add('hidden');
+    }
+
+    function toDrawPage() {
+        const input = document.getElementById('nameInput').value;
+        names = input.split('\n').map(n => n.trim()).filter(n => n !== "");
+
+        if (names.length === 0) {
+            alert("ใสรายชื่อก่อนจ้า เดี๋ยวไม่มีคนได้รางวัลนะ!");
+            return;
+        }
+
+        document.getElementById('setup-view').classList.add('hidden');
+        document.getElementById('draw-view').classList.remove('hidden');
+        document.getElementById('result-area').innerHTML = "";
+        document.getElementById('title-text').innerText = "เตรียมตัวรับโชค!";
+    }
+
+    function startSongkranDraw() {
+        const overlay = document.getElementById('countdown-overlay');
+        const timerVal = document.getElementById('timer-val');
+        const amount = parseInt(document.getElementById('luckyAmount').value);
+
+        overlay.style.display = 'flex';
+        let count = 3;
+        timerVal.innerText = count;
+
+        const interval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                timerVal.innerText = count;
+            } else if (count === 0) {
+                timerVal.innerText = "เฮ้!";
+            } else {
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                doRandom(amount);
+            }
+        }, 1000);
+    }
+
+    function doRandom(amount) {
+        const resultArea = document.getElementById('result-area');
+        const title = document.getElementById('title-text');
+        const btn = document.getElementById('spinBtn');
+        
+        resultArea.innerHTML = "";
+        title.innerText = "🎉 ยินดีด้วยกับผู้โชคดี! 🎉";
+        btn.innerText = "สุ่มใหม่อีกรอบ 💦";
+
+        let pool = [...names];
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        const winners = pool.slice(0, amount);
+
+        winners.forEach((name, i) => {
+            setTimeout(() => {
+                const card = document.createElement('div');
+                card.className = 'winner-card';
+                card.innerText = "💧 " + name;
+                resultArea.appendChild(card);
+                
+                // เอฟเฟกต์พลุกระดาษเล็กๆ (ถ้ามีเครื่องแรงๆ)
+                if(i === winners.length - 1) {
+                    confettiEffect();
+                }
+            }, i * 300);
+        });
+    }
+
+    function confettiEffect() {
+        // คุณสามารถเพิ่ม Library confetti.js ภายหลังได้ถ้าต้องการความอลังการ
+        console.log("สุ่มเรียบร้อย!");
+    }
+</script>
+
+</body>
+</html>
