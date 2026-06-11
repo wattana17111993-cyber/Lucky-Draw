@@ -2,36 +2,360 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Lucky Draw — Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background: #f0f4f8; padding: 20px; display: flex; justify-content: center; }
-        .card { width: 100%; max-width: 400px; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        textarea { width: 100%; height: 200px; border-radius: 15px; padding: 15px; border: 2px solid #ddd; margin-bottom: 20px; }
-        button { width: 100%; padding: 20px; background: #56ab2f; color: white; border: none; border-radius: 50px; font-size: 1.5rem; cursor: pointer; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #87ceeb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ====== SKY GRADIENT ====== */
+        .sky {
+            position: fixed; inset: 0;
+            background: linear-gradient(180deg, #5ba4d4 0%, #87ceeb 45%, #b8dff5 70%, #c8e8c8 85%, #74c69d 100%);
+            z-index: 0;
+        }
+
+        /* ====== CLOUDS ====== */
+        .clouds { position: fixed; top: 0; left: 0; width: 100%; z-index: 1; pointer-events: none; }
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.85;
+            filter: drop-shadow(0 4px 10px rgba(255,255,255,0.4));
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        .c1 { width: 120px; height: 40px; top: 60px; left: -140px; animation: drift 22s linear infinite; }
+        .c1::before { width: 60px; height: 60px; top: -30px; left: 20px; }
+        .c1::after  { width: 45px; height: 45px; top: -22px; left: 55px; }
+
+        .c2 { width: 90px; height: 30px; top: 110px; left: -110px; animation: drift 30s linear 8s infinite; opacity: 0.65; }
+        .c2::before { width: 45px; height: 45px; top: -24px; left: 12px; }
+        .c2::after  { width: 36px; height: 36px; top: -18px; left: 42px; }
+
+        .c3 { width: 150px; height: 45px; top: 40px; left: -170px; animation: drift 18s linear 4s infinite; opacity: 0.7; }
+        .c3::before { width: 70px; height: 70px; top: -38px; left: 25px; }
+        .c3::after  { width: 55px; height: 55px; top: -28px; left: 70px; }
+
+        @keyframes drift { from { transform: translateX(0); } to { transform: translateX(110vw); } }
+
+        /* ====== SUN ====== */
+        .sun {
+            position: fixed; top: 30px; right: 80px; width: 70px; height: 70px;
+            background: radial-gradient(circle, #ffe066 60%, #ffc93c 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px 10px rgba(255,220,80,0.45);
+            z-index: 1;
+            animation: sunPulse 4s ease-in-out infinite;
+        }
+        @keyframes sunPulse {
+            0%, 100% { box-shadow: 0 0 30px 10px rgba(255,220,80,0.45); }
+            50%       { box-shadow: 0 0 50px 20px rgba(255,220,80,0.65); }
+        }
+
+        /* ====== GROUND LAYERS ====== */
+        .ground-back {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 180px;
+            background: linear-gradient(180deg, #74c69d 0%, #52b788 40%, #2d6a4f 100%);
+            z-index: 2;
+        }
+        .ground-front {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
+            background: linear-gradient(180deg, #95d5b2 0%, #52b788 60%, #2d6a4f 100%);
+            z-index: 3;
+        }
+
+        /* ====== TREES (Back) ====== */
+        .trees {
+            position: fixed; bottom: 120px; left: 0; width: 100%; z-index: 2;
+            pointer-events: none;
+        }
+        .tree { position: absolute; bottom: 0; }
+        .tree-trunk { margin: 0 auto; background: #8b5e3c; border-radius: 3px; }
+        .tree-leaves {
+            border-radius: 50% 50% 45% 45%;
+            margin: 0 auto;
+            position: relative;
+            top: 0;
+        }
+        .t1 { left: 5%; } .t1 .tree-trunk { width:14px; height:35px; }
+        .t1 .tree-leaves { width:55px; height:65px; background: #1b4332; }
+        .t2 { left: 12%; } .t2 .tree-trunk { width:10px; height:25px; }
+        .t2 .tree-leaves { width:40px; height:50px; background: #2d6a4f; }
+        .t3 { right: 8%; } .t3 .tree-trunk { width:14px; height:35px; }
+        .t3 .tree-leaves { width:55px; height:68px; background: #1b4332; }
+        .t4 { right: 16%; } .t4 .tree-trunk { width:11px; height:28px; }
+        .t4 .tree-leaves { width:45px; height:55px; background: #2d6a4f; }
+        .t5 { left: 48%; } .t5 .tree-trunk { width:12px; height:30px; }
+        .t5 .tree-leaves { width:48px; height:58px; background: #1b4332; }
+
+        /* ====== WALKING COW (background) ====== */
+        .bg-cow {
+            position: fixed; bottom: 80px; z-index: 4;
+            font-size: 2.5rem;
+            animation: cowWalk 18s linear infinite;
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2));
+        }
+        @keyframes cowWalk {
+            0%   { left: -80px; transform: scaleX(1); }
+            49%  { left: calc(100vw + 80px); transform: scaleX(1); }
+            50%  { left: calc(100vw + 80px); transform: scaleX(-1); }
+            99%  { left: -80px; transform: scaleX(-1); }
+            100% { left: -80px; transform: scaleX(1); }
+        }
+
+        /* ====== FLOWERS ====== */
+        .flowers { position: fixed; bottom: 70px; left: 0; width: 100%; z-index: 4; pointer-events: none; }
+        .flower { position: absolute; font-size: 1.2rem; animation: sway 3s ease-in-out infinite; }
+        .flower:nth-child(1) { left: 8%;  animation-delay: 0s; }
+        .flower:nth-child(2) { left: 20%; animation-delay: 0.5s; }
+        .flower:nth-child(3) { left: 35%; animation-delay: 1s; }
+        .flower:nth-child(4) { left: 55%; animation-delay: 0.3s; }
+        .flower:nth-child(5) { left: 72%; animation-delay: 0.8s; }
+        .flower:nth-child(6) { left: 88%; animation-delay: 1.4s; }
+        @keyframes sway {
+            0%, 100% { transform: rotate(-8deg); }
+            50%       { transform: rotate(8deg); }
+        }
+
+        /* ====== CARD ====== */
+        .card {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 460px;
+            background: rgba(254, 250, 224, 0.92);
+            backdrop-filter: blur(12px);
+            padding: 40px 36px 36px;
+            border-radius: 28px;
+            border: 3px solid #d4a373;
+            box-shadow: 0 20px 50px rgba(45,106,79,0.25), 0 2px 0 #fefae0 inset;
+            margin-bottom: 120px;
+        }
+
+        .card-title {
+            text-align: center;
+            color: #1b4332;
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .card-sub {
+            text-align: center;
+            color: #52b788;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #2d6a4f;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 190px;
+            border-radius: 16px;
+            padding: 14px 16px;
+            border: 2px solid #b7e4c7;
+            background: rgba(255,255,255,0.7);
+            font-family: 'Kanit', sans-serif;
+            font-size: 1rem;
+            color: #1b4332;
+            resize: none;
+            outline: none;
+            transition: border-color .2s;
+            margin-bottom: 16px;
+        }
+        textarea:focus { border-color: #52b788; background: rgba(255,255,255,0.9); }
+        textarea::placeholder { color: #95d5b2; }
+
+        .select-wrap {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        select {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 2px solid #b7e4c7;
+            background: rgba(255,255,255,0.7);
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.05rem;
+            color: #1b4332;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+        select:focus { border-color: #52b788; }
+        .select-arrow {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            pointer-events: none; color: #52b788; font-size: 1.1rem;
+        }
+
+        .draw-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
+            color: #fefae0;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(45,106,79,0.35);
+            transition: transform .15s, box-shadow .15s;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .draw-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,106,79,0.45); }
+        .draw-btn:active { transform: translateY(1px); }
+        .draw-btn .btn-cow { margin-right: 8px; }
+
+        /* ripple */
+        .draw-btn::after {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0; transition: opacity .3s;
+        }
+        .draw-btn:hover::after { opacity: 1; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #2d6a4f; color: #fefae0; padding: 12px 28px;
+            border-radius: 50px; font-size: 1rem; font-weight: 600;
+            opacity: 0; transition: all .4s; z-index: 99; pointer-events: none;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* bird */
+        .bird {
+            position: fixed; z-index: 3; font-size: 1.3rem;
+            animation: birdFly 14s linear 3s infinite;
+            top: 80px;
+        }
+        @keyframes birdFly {
+            0%   { left: -60px; top: 80px; opacity: 1; }
+            40%  { top: 50px; }
+            80%  { top: 90px; }
+            100% { left: 110vw; top: 80px; opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>ควบคุมการสุ่ม</h3>
-        <textarea id="nameInput" placeholder="ใส่ชื่อพนักงาน..."></textarea>
-        <select id="luckyAmount" style="width:100%; padding: 15px; margin-bottom: 20px;">
-            <option value="1">1 ท่าน</option><option value="5">5 ท่าน</option>
+
+<!-- SCENE -->
+<div class="sky"></div>
+<div class="sun"></div>
+<div class="clouds">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+</div>
+
+<!-- Trees -->
+<div class="trees">
+    <div class="tree t1"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t2"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t3"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t4"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t5"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+</div>
+
+<div class="ground-back"></div>
+<div class="ground-front"></div>
+
+<div class="bg-cow">🐄</div>
+<div class="bird">🐦</div>
+
+<div class="flowers">
+    <div class="flower">🌻</div>
+    <div class="flower">🌸</div>
+    <div class="flower">🌼</div>
+    <div class="flower">🌺</div>
+    <div class="flower">🌻</div>
+    <div class="flower">🌼</div>
+</div>
+
+<!-- CARD -->
+<div class="card">
+    <div class="card-title">🐄 Lucky Farm Draw 🌿</div>
+    <div class="card-sub">ควบคุมการสุ่มผู้โชคดี</div>
+
+    <label>📋 รายชื่อพนักงาน (ใส่ชื่อละบรรทัด)</label>
+    <textarea id="nameInput" placeholder="สมชาย&#10;สมหญิง&#10;สมศักดิ์&#10;..."></textarea>
+
+    <label>🎯 จำนวนผู้โชคดี</label>
+    <div class="select-wrap">
+        <select id="luckyAmount">
+            <option value="1">🐮 1 ท่าน</option>
+            <option value="3">🐮🐮🐮 3 ท่าน</option>
+            <option value="5">🐮×5 จำนวน 5 ท่าน</option>
+            <option value="10">🐮×10 จำนวน 10 ท่าน</option>
         </select>
-        <button id="drawBtn">เริ่มสุ่ม!</button>
+        <div class="select-arrow">▼</div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    <button class="draw-btn" id="drawBtn">
+        <span class="btn-cow">🐄</span> เริ่มสุ่ม!
+    </button>
+</div>
 
-        const db = getDatabase(initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" }));
-        
-        document.getElementById('drawBtn').onclick = async () => {
-            await set(ref(db, 'drawData'), null); // ล้างค่าเก่า
-            const names = document.getElementById('nameInput').value.split('\n').filter(n=>n.trim());
-            const amount = document.getElementById('luckyAmount').value;
-            set(ref(db, 'drawData'), { names, amount, time: Date.now() });
-        };
-    </script>
+<div class="toast" id="toast">✅ ส่งข้อมูลแล้ว! ดูผลที่หน้าจอใหญ่</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const db = getDatabase(initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" }));
+
+    document.getElementById('drawBtn').onclick = async () => {
+        const btn = document.getElementById('drawBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> กำลังส่ง...';
+
+        await set(ref(db, 'drawData'), null);
+        const names = document.getElementById('nameInput').value.split('\n').filter(n => n.trim());
+        const amount = document.getElementById('luckyAmount').value;
+
+        if (names.length === 0) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-cow">🐄</span> เริ่มสุ่ม!';
+            return;
+        }
+
+        await set(ref(db, 'drawData'), { names, amount, time: Date.now() });
+
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-cow">🐄</span> เริ่มสุ่ม!';
+
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    };
+</script>
 </body>
 </html>
