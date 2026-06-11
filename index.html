@@ -4,66 +4,72 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { margin: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Kanit', sans-serif; overflow: hidden; background: linear-gradient(to bottom, #a8e063, #56ab2f); }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Kanit', sans-serif; overflow: hidden; }
         
-        /* ลูกเล่นหญ้าพริ้วไหว */
-        .grass-layer { position: absolute; bottom: 0; width: 100%; height: 100px; background: rgba(0,0,0,0.1); transform: skewY(-2deg); }
-
-        .container { z-index: 1; text-align: center; background: rgba(255, 255, 255, 0.9); padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        
-        #title { font-size: 3rem; color: #2d5a27; margin-bottom: 20px; text-shadow: 2px 2px 5px rgba(255,255,255,0.5); }
-        
-        .winner-card { 
-            display: inline-block; margin: 15px; padding: 25px 50px;
-            background: #fff; color: #2d5a27; border-radius: 50px;
-            font-size: 2.5rem; font-weight: 700; border: 4px solid #ffd700;
-            box-shadow: 0 10px 0 #b38b00; transform: translateY(0);
-            transition: all 0.3s;
+        /* พื้นหลังฟาร์ม */
+        .bg-farm {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://img.freepik.com/free-photo/green-field-meadow_1150-13651.jpg') no-repeat center center fixed;
+            background-size: cover;
+            animation: gentle-zoom 20s infinite alternate;
         }
-        .animate-pop { animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        @keyframes gentle-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
+        /* กล่องข้อความแบบในรูป */
+        .main-box {
+            position: relative; z-index: 1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px 60px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin-top: 20vh;
+        }
+
+        h1 { color: #2d5a27; font-size: 2.5rem; margin: 0; }
+        
+        .result-container { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        
+        .winner-card {
+            background: #fff; padding: 15px 30px; border-radius: 50px;
+            font-size: 2rem; font-weight: bold; color: #2d5a27;
+            border: 3px solid #56ab2f; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: bounceIn 0.6s ease;
+        }
+        @keyframes bounceIn { 0% { opacity: 0; transform: scale(0.3); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1 id="title">🐄 ลุ้นรับรางวัลจากฟาร์มโชคชัย 🌿</h1>
-        <div id="result-area"></div>
+    <div class="bg-farm"></div>
+    
+    <div style="text-align: center;">
+        <div class="main-box">
+            <h1 id="title">🐄 ลุ้นรับรางวัลจากฟาร์มโชคชัย 🌿</h1>
+        </div>
+        <div id="result-container" class="result-container"></div>
     </div>
 
     <script>
         window.addEventListener('storage', (e) => {
             if (e.key === 'songkranData') {
                 const {names, amount} = JSON.parse(e.newValue);
-                startDraw(names, amount);
+                const area = document.getElementById('result-container');
+                area.innerHTML = "";
+                
+                let winners = [...names].sort(() => 0.5 - Math.random()).slice(0, amount);
+                
+                winners.forEach((name, i) => {
+                    setTimeout(() => {
+                        const div = document.createElement('div');
+                        div.className = 'winner-card';
+                        div.innerText = "🐮 " + name;
+                        area.appendChild(div);
+                        confetti({ particleCount: 100, origin: { y: 0.7 } });
+                    }, i * 700);
+                });
             }
         });
-
-        async function startDraw(names, amount) {
-            const area = document.getElementById('result-area');
-            const title = document.getElementById('title');
-            area.innerHTML = "";
-            
-            // เอฟเฟกต์หมุนชื่อ (Rolling Effect)
-            for(let i=0; i<10; i++) {
-                title.innerText = "กำลังสุ่ม... " + names[Math.floor(Math.random()*names.length)];
-                await new Promise(r => setTimeout(r, 100));
-            }
-
-            title.innerText = "🎉 ผู้โชคดีคือ! 🎉";
-            let winners = [...names].sort(() => 0.5 - Math.random()).slice(0, amount);
-            
-            winners.forEach((name, i) => {
-                setTimeout(() => {
-                    const card = document.createElement('div');
-                    card.className = 'winner-card animate-pop';
-                    card.innerText = "🐮 " + name;
-                    area.appendChild(card);
-                    // พลุธรรมชาติ
-                    confetti({ particleCount: 150, spread: 70, colors: ['#56ab2f', '#ffffff', '#ffd700'] });
-                }, i * 800);
-            });
-        }
     </script>
 </body>
 </html>
