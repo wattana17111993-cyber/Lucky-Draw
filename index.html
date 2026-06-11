@@ -2,313 +2,48 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rainy Lucky Draw - สุ่มรางวัลหน้าฝน</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Songkran Display</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root {
-            --rain-dark: #1e3c72;
-            --rain-light: #2a5298;
-            --leaf-green: #2d6a4f;
-            --puddle-blue: #a2d2ff;
-            --glass-white: rgba(255, 255, 255, 0.15);
-        }
-
-        * { box-sizing: border-box; font-family: 'Kanit', sans-serif; }
-
-        body {
-            background: linear-gradient(180deg, #2c3e50 0%, #4ca1af 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-            overflow: hidden; /* กัน Scrollbar จากเอฟเฟกต์ฝน */
-            color: white;
-        }
-
-        /* เอฟเฟกต์สายฝนโปรยปราย */
-        .rain-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .drop {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.2);
-            width: 1px;
-            height: 50px;
-            top: -100px;
-            animation: fall linear infinite;
-        }
-        @keyframes fall {
-            to { transform: translateY(110vh); }
-        }
-
-        .container {
-            background: var(--glass-white);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 35px;
-            border-radius: 40px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 550px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-            z-index: 1;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 15px rgba(255,255,255,0.3);
-        }
-
-        p.subtitle {
-            color: var(--puddle-blue);
-            font-weight: 300;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }
-
-        /* Input Area */
-        textarea {
-            width: 100%;
-            height: 180px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 15px;
-            font-size: 16px;
-            outline: none;
-            transition: 0.3s;
-            color: white;
-        }
-        textarea::placeholder { color: rgba(255,255,255,0.5); }
-        textarea:focus { border-color: var(--puddle-blue); background: rgba(255, 255, 255, 0.2); }
-
-        .setting-box {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        select {
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 1px solid var(--puddle-blue);
-            background: var(--rain-dark);
-            color: white;
-            font-weight: 600;
-            outline: none;
-        }
-
-        /* ปุ่มสไตล์ใบไม้ชุ่มน้ำ */
-        .btn-splash {
-            background: linear-gradient(135deg, #40916c, #1b4332);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 20px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
-            box-shadow: 0 6px 0px #081c15;
-            margin-bottom: 10px;
-        }
-        .btn-splash:hover { transform: translateY(2px); box-shadow: 0 4px 0px #081c15; filter: brightness(1.1); }
-        .btn-splash:active { transform: translateY(6px); box-shadow: 0 0px 0px #081c15; }
-
-        /* Countdown */
-        #countdown-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(30, 60, 114, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            flex-direction: column;
-        }
-        .timer-text {
-            font-size: 150px;
-            font-weight: 600;
-            animation: bounceIn 1s infinite;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
-
-        /* Winner Cards */
-        .winner-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .winner-card {
-            background: white;
-            color: var(--rain-dark);
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            border: 2px solid transparent;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
-        }
-
-        .hidden { display: none !important; }
-        .back-btn { color: var(--puddle-blue); cursor: pointer; font-size: 14px; margin-top: 15px; display: block; opacity: 0.8; }
-        .back-btn:hover { opacity: 1; text-decoration: underline; }
+        body { background: linear-gradient(135deg, #3a7bd5, #00d2ff); color: white; font-family: 'Kanit', sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .winner-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
+        .winner-card { background: white; color: #3a7bd5; padding: 20px 40px; border-radius: 20px; font-size: 2.5rem; font-weight: bold; border: 5px solid #ffd700; box-shadow: 0 10px 0 #c71585; animation: popIn 0.5s ease; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
-
-<!-- พื้นหลังฝน -->
-<div class="rain-container" id="rainContainer"></div>
-
-<div class="container" id="setup-view">
-    <h1>🌧️ สุ่มผู้โชคดีกลางสายฝน</h1>
-    <p class="subtitle">แจกโชคชุ่มฉ่ำ ลุ้นรางวัลไปกับเรา</p>
-    
-    <textarea id="nameInput" placeholder="ใส่ชื่อผู้มีสิทธิ์ลุ้นโชค... (1 ชื่อต่อบรรทัด)"></textarea>
-
-    <div class="setting-box">
-        <span>จำนวนผู้โชคดี:</span>
-        <select id="luckyAmount">
-            <option value="1">1 ท่าน</option>
-            <option value="5">5 ท่าน</option>
-            <option value="10">10 ท่าน</option>
-            <option value="15">15 ท่าน</option>
-        </select>
-    </div>
-
-    <button class="btn-splash" onclick="toDrawPage()">เข้าสู่หน้าสุ่มรางวัล ☔</button>
-</div>
-
-<div class="container hidden" id="draw-view">
-    <h1 id="title-text">รอรับความชุ่มฉ่ำ!</h1>
-    <p id="desc-text" class="subtitle">ใครจะเป็นผู้โชคดีท่ามกลางสายฝนนี้?</p>
-    
+    <h1 id="title" style="font-size: 3rem;">💦 สงกรานต์สำราญใจ 💦</h1>
     <div id="result-area" class="winner-list"></div>
 
-    <div style="margin-top: 30px;">
-        <button class="btn-splash" id="spinBtn" onclick="startRainyDraw()">เริ่มสุ่มรางวัล 🌧️</button>
-        <span class="back-btn" onclick="toSetupPage()">← กลับไปแก้ไขรายชื่อ</span>
-    </div>
-</div>
-
-<div id="countdown-overlay">
-    <div class="timer-text" id="timer-val">3</div>
-    <h2 style="margin-top: 20px;">กางร่มรอรับโชค...</h2>
-</div>
-
-<script>
-    // สร้างสายฝนเบื้องหลัง
-    const rainContainer = document.getElementById('rainContainer');
-    const dropCount = 50;
-
-    for (let i = 0; i < dropCount; i++) {
-        const drop = document.createElement('div');
-        drop.className = 'drop';
-        drop.style.left = Math.random() * 100 + 'vw';
-        drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
-        drop.style.animationDelay = Math.random() * 2 + 's';
-        rainContainer.appendChild(drop);
-    }
-
-    let names = [];
-
-    function toSetupPage() {
-        document.getElementById('setup-view').classList.remove('hidden');
-        document.getElementById('draw-view').classList.add('hidden');
-    }
-
-    function toDrawPage() {
-        const input = document.getElementById('nameInput').value;
-        names = input.split('\n').map(n => n.trim()).filter(n => n !== "");
-
-        if (names.length === 0) {
-            alert("กรุณาใส่รายชื่อก่อนนะครับ!");
-            return;
-        }
-
-        document.getElementById('setup-view').classList.add('hidden');
-        document.getElementById('draw-view').classList.remove('hidden');
-        document.getElementById('result-area').innerHTML = "";
-        document.getElementById('title-text').innerText = "รอรับความชุ่มฉ่ำ!";
-    }
-
-    function startRainyDraw() {
-        const overlay = document.getElementById('countdown-overlay');
-        const timerVal = document.getElementById('timer-val');
-        const amount = parseInt(document.getElementById('luckyAmount').value);
-
-        overlay.style.display = 'flex';
-        let count = 3;
-        timerVal.innerText = count;
-
-        const interval = setInterval(() => {
-            count--;
-            if (count > 0) {
-                timerVal.innerText = count;
-            } else if (count === 0) {
-                timerVal.innerText = "ซู่...!";
-            } else {
-                clearInterval(interval);
-                overlay.style.display = 'none';
-                doRandom(amount);
+    <script>
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'songkranData') {
+                const data = JSON.parse(event.newValue);
+                runDraw(data.names, data.amount);
             }
-        }, 1000);
-    }
-
-    function doRandom(amount) {
-        const resultArea = document.getElementById('result-area');
-        const title = document.getElementById('title-text');
-        const btn = document.getElementById('spinBtn');
-        
-        resultArea.innerHTML = "";
-        title.innerText = "🎊 ยินดีด้วยกับผู้โชคดี! 🎊";
-        btn.innerText = "สุ่มใหม่อีกครั้ง 🌧️";
-
-        let pool = [...names];
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-
-        const winners = pool.slice(0, amount);
-
-        winners.forEach((name, i) => {
-            setTimeout(() => {
-                const card = document.createElement('div');
-                card.className = 'winner-card';
-                card.innerText = "☔ " + name;
-                resultArea.appendChild(card);
-            }, i * 300);
         });
-    }
-</script>
 
+        function runDraw(names, amount) {
+            const area = document.getElementById('result-area');
+            area.innerHTML = "";
+            document.getElementById('title').innerText = "กำลังสุ่ม...";
+            
+            let pool = [...names].sort(() => 0.5 - Math.random());
+            let winners = pool.slice(0, amount);
+
+            setTimeout(() => {
+                document.getElementById('title').innerText = "🎉 ผู้โชคดีคือ 🎉";
+                winners.forEach((name, i) => {
+                    setTimeout(() => {
+                        const card = document.createElement('div');
+                        card.className = 'winner-card';
+                        card.innerText = name;
+                        area.appendChild(card);
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    }, i * 600);
+                });
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
