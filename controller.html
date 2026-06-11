@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Controller</title>
+    <style>
+        body { font-family: 'Kanit', sans-serif; padding: 30px; background: #f4f4f4; }
+        textarea { width: 100%; height: 250px; padding: 15px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        .controls { margin-top: 20px; }
+        button { width: 100%; padding: 20px; font-size: 1.5rem; background: #ff4bb4; color: white; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #ff1a8c; transform: scale(1.02); }
+    </style>
+</head>
+<body>
+    <h3>รายชื่อพนักงาน (1 ชื่อต่อบรรทัด)</h3>
+    <textarea id="nameInput" placeholder="ก๊อปปี้รายชื่อมาวางตรงนี้เลยครับ..."></textarea>
+    
+    <div class="controls">
+        <label>จำนวนรางวัล:</label>
+        <select id="luckyAmount" style="padding: 10px;">
+            <option value="1">1 ท่าน</option>
+            <option value="3">3 ท่าน</option>
+            <option value="5">5 ท่าน</option>
+            <option value="10">10 ท่าน</option>
+        </select>
+        <br><br>
+        <button onclick="triggerDraw()">เริ่มสุ่ม!</button>
+    </div>
+
+    <script>
+        function triggerDraw() {
+            const input = document.getElementById('nameInput').value;
+            const names = input.split('\n').filter(n => n.trim() !== "");
+            const amount = document.getElementById('luckyAmount').value;
+
+            if (names.length === 0) return alert("กรุณาใส่รายชื่อก่อนครับ!");
+
+            // ส่งข้อมูลผ่าน localStorage
+            localStorage.setItem('songkranData', JSON.stringify({
+                names: names,
+                amount: amount,
+                timestamp: new Date().getTime()
+            }));
+        }
+    </script>
+</body>
+</html>
