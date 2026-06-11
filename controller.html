@@ -302,7 +302,7 @@
 
 <!-- CARD -->
 <div class="card">
-    <div class="card-title">🐄 ฟาร์มโชคชัย 🌿</div>
+    <div class="card-title">🐄 Lucky Farm Draw 🌿</div>
     <div class="card-sub">ควบคุมการสุ่มผู้โชคดี</div>
 
     <label>📋 รายชื่อพนักงาน (ใส่ชื่อละบรรทัด)</label>
@@ -319,43 +319,127 @@
         <div class="select-arrow">▼</div>
     </div>
 
+    <!-- Winner pool status -->
+    <div id="poolStatus" style="
+        margin-bottom: 16px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: rgba(116,198,157,0.2);
+        border: 1.5px solid #b7e4c7;
+        font-size: 0.9rem;
+        color: #2d6a4f;
+        display: flex; align-items: center; justify-content: space-between;
+    ">
+        <span id="poolText">🌿 โหลดข้อมูล...</span>
+        <button id="resetBtn" onclick="resetWinners()" style="
+            background: #e76f51; color: white; border: none;
+            border-radius: 20px; padding: 4px 14px;
+            font-family: 'Kanit', sans-serif; font-size: 0.85rem;
+            cursor: pointer; font-weight: 600;
+            transition: opacity .2s;
+        " onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+            🔄 รีเซ็ต
+        </button>
+    </div>
+
     <button class="draw-btn" id="drawBtn">
         <span class="btn-cow">🐄</span> เริ่มสุ่ม!
     </button>
 </div>
 
-<div class="toast" id="toast">✅ ส่งข้อมูลแล้ว! ดูผลที่หน้าจอใหญ่</div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-    const db = getDatabase(initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" }));
+    const app = initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" });
+    const db = getDatabase(app);
 
+    // ---- ดึงรายชื่อผู้ชนะสะสมจาก Firebase ----
+    async function getPastWinners() {
+        const snap = await get(ref(db, 'pastWinners'));
+        return snap.val() ? snap.val() : [];
+    }
+
+    async function updatePoolStatus() {
+        const past = await getPastWinners();
+        const allNames = document.getElementById('nameInput').value.split('\n').map(n => n.trim()).filter(Boolean);
+        const remaining = allNames.filter(n => !past.includes(n));
+        const el = document.getElementById('poolText');
+        if (past.length === 0) {
+            el.textContent = `🌿 ยังไม่มีผู้รับรางวัล — สุ่มได้เลย`;
+        } else {
+            el.textContent = `🏆 รับรางวัลไปแล้ว ${past.length} ท่าน | คงเหลือ ${remaining.length} ท่าน`;
+        }
+    }
+
+    // อัปเดตสถานะทุกครั้งที่แก้ textarea
+    document.getElementById('nameInput').addEventListener('input', updatePoolStatus);
+    updatePoolStatus();
+
+    // ---- Reset ผู้ชนะทั้งหมด ----
+    window.resetWinners = async () => {
+        if (!confirm('รีเซ็ตรายชื่อผู้รับรางวัลทั้งหมด?')) return;
+        await set(ref(db, 'pastWinners'), []);
+        showToast('🔄 รีเซ็ตเรียบร้อย!', '#e76f51');
+        updatePoolStatus();
+    };
+
+    // ---- Draw ----
     document.getElementById('drawBtn').onclick = async () => {
         const btn = document.getElementById('drawBtn');
         btn.disabled = true;
         btn.innerHTML = '<span>⏳</span> กำลังส่ง...';
 
-        await set(ref(db, 'drawData'), null);
-        const names = document.getElementById('nameInput').value.split('\n').filter(n => n.trim());
-        const amount = document.getElementById('luckyAmount').value;
+        const allNames = document.getElementById('nameInput').value.split('\n').map(n => n.trim()).filter(Boolean);
+        const amount = parseInt(document.getElementById('luckyAmount').value);
 
-        if (names.length === 0) {
+        if (allNames.length === 0) {
             btn.disabled = false;
             btn.innerHTML = '<span class="btn-cow">🐄</span> เริ่มสุ่ม!';
             return;
         }
 
-        await set(ref(db, 'drawData'), { names, amount, time: Date.now() });
+        // กรองคนที่เคยได้รางวัลออก
+        const past = await getPastWinners();
+        const eligible = allNames.filter(n => !past.includes(n));
+
+        if (eligible.length === 0) {
+            showToast('⚠️ ทุกท่านได้รับรางวัลครบแล้ว! กรุณารีเซ็ต', '#e76f51');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-cow">🐄</span> เริ่มสุ่ม!';
+            return;
+        }
+
+        if (eligible.length < amount) {
+            showToast(`⚠️ คงเหลือผู้มีสิทธิ์ ${eligible.length} ท่าน (น้อยกว่าที่เลือก)`, '#e9c46a');
+        }
+
+        // ส่งเฉพาะรายชื่อที่ยังไม่เคยได้รางวัล
+        await set(ref(db, 'drawData'), null);
+        await set(ref(db, 'drawData'), { names: eligible, amount, time: Date.now() });
+
+        // บันทึกผู้ชนะ — หน้า index จะสุ่มจาก eligible อีกที
+        // เราไม่รู้ว่าใครจะชนะ ให้ index.html เขียนกลับมาแทน
+        // แต่เพื่อง่าย: สุ่มที่นี่ด้วยแล้วบันทึก pastWinners ทันที
+        const winners = [...eligible].sort(() => Math.random() - 0.5).slice(0, Math.min(amount, eligible.length));
+        const newPast = [...past, ...winners];
+        await set(ref(db, 'pastWinners'), newPast);
 
         btn.disabled = false;
         btn.innerHTML = '<span class="btn-cow">🐄</span> เริ่มสุ่ม!';
-
-        const toast = document.getElementById('toast');
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+        showToast('✅ ส่งข้อมูลแล้ว! ดูผลที่หน้าจอใหญ่', '#2d6a4f');
+        updatePoolStatus();
     };
+
+    function showToast(msg, bg = '#2d6a4f') {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.background = bg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
 </script>
 </body>
 </html>
