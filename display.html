@@ -1,49 +1,57 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <title>Songkran Display</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { background: linear-gradient(135deg, #3a7bd5, #00d2ff); color: white; font-family: 'Kanit', sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .winner-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
-        .winner-card { background: white; color: #3a7bd5; padding: 20px 40px; border-radius: 20px; font-size: 2.5rem; font-weight: bold; border: 5px solid #ffd700; box-shadow: 0 10px 0 #c71585; animation: popIn 0.5s ease; }
-        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        body { 
+            margin: 0; background: #0f2027; 
+            background: linear-gradient(135deg, #203a43, #2c5364);
+            font-family: 'Kanit', sans-serif; color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3); text-align: center; width: 80%;
+        }
+        .winner-card { 
+            display: inline-block; margin: 15px; padding: 20px 40px;
+            background: #fff; color: #2c5364; border-radius: 50px;
+            font-size: 2rem; font-weight: 600; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
-    <h1 id="title" style="font-size: 3rem;">💦 สงกรานต์สำราญใจ 💦</h1>
-    <div id="result-area" class="winner-list"></div>
+    <div class="container">
+        <h1 id="title">💦 รอลุ้นผู้โชคดี...</h1>
+        <div id="result-area"></div>
+    </div>
 
     <script>
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'songkranData') {
-                const data = JSON.parse(event.newValue);
-                runDraw(data.names, data.amount);
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'songkranData') {
+                const {names, amount} = JSON.parse(e.newValue);
+                const area = document.getElementById('result-area');
+                area.innerHTML = "";
+                document.getElementById('title').innerText = "✨ กำลังสุ่มรางวัล ✨";
+                
+                let winners = [...names].sort(() => 0.5 - Math.random()).slice(0, amount);
+                
+                setTimeout(() => {
+                    document.getElementById('title').innerText = "🎉 ขอแสดงความยินดีด้วย! 🎉";
+                    winners.forEach((name, i) => {
+                        setTimeout(() => {
+                            const div = document.createElement('div');
+                            div.className = 'winner-card';
+                            div.innerText = "⭐ " + name;
+                            area.appendChild(div);
+                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+                        }, i * 600);
+                    });
+                }, 1500);
             }
         });
-
-        function runDraw(names, amount) {
-            const area = document.getElementById('result-area');
-            area.innerHTML = "";
-            document.getElementById('title').innerText = "กำลังสุ่ม...";
-            
-            let pool = [...names].sort(() => 0.5 - Math.random());
-            let winners = pool.slice(0, amount);
-
-            setTimeout(() => {
-                document.getElementById('title').innerText = "🎉 ผู้โชคดีคือ 🎉";
-                winners.forEach((name, i) => {
-                    setTimeout(() => {
-                        const card = document.createElement('div');
-                        card.className = 'winner-card';
-                        card.innerText = name;
-                        area.appendChild(card);
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                    }, i * 600);
-                });
-            }, 1000);
-        }
     </script>
 </body>
 </html>
