@@ -4,38 +4,37 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Kanit', sans-serif; }
+        body, html { margin: 0; height: 100%; font-family: 'Kanit', sans-serif; overflow: hidden; }
         
-        /* พื้นหลังฟาร์ม */
+        /* พื้นหลัง: ทุ่งหญ้าและวัว */
         .farm-bg { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: url('https://images.unsplash.com/photo-1500622944204-b135684e99fd?q=80&w=2000') center/cover;
+            background: url('https://images.unsplash.com/photo-1574870524398-a365ef11a2d2?q=80&w=2000') center/cover;
             z-index: -1; 
         }
-        
-        /* กล่องแสดงผลตรงกลาง */
-        .container { 
-            display: flex; justify-content: center; align-items: center; height: 100vh; 
-        }
+
+        .container { display: flex; justify-content: center; align-items: center; height: 100vh; }
         .main-box { 
-            background: rgba(255, 255, 255, 0.9); padding: 40px; border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; max-width: 80%;
+            background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 40px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3); text-align: center; max-width: 85%;
         }
-        
-        /* รายชื่อเรียงเป็นบรรทัด */
+
+        #countdown { font-size: 8rem; font-weight: 600; color: #2d5a27; }
         .winner-list { 
-            font-size: 2.5rem; color: #1a4314; font-weight: 600;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
-            margin-top: 20px;
+            font-size: 2.2rem; color: #1a4314; display: flex; flex-wrap: wrap; 
+            justify-content: center; gap: 20px; margin-top: 20px;
         }
-        .winner-item { display: inline-flex; align-items: center; gap: 10px; }
+        .winner-item { padding: 10px 20px; background: rgba(255,255,255,0.8); border-radius: 50px; border: 2px solid #56ab2f; }
     </style>
 </head>
 <body>
     <div class="farm-bg"></div>
     <div class="container">
         <div class="main-box">
-            <h1 id="title">🐄 ลุ้นรับรางวัลจากฟาร์มโชคชัย 🌿</h1>
+            <div id="display-area">
+                <h1 id="title">🐄 เตรียมตัวลุ้นโชคจากฟาร์ม 🌿</h1>
+                <div id="countdown"></div>
+            </div>
             <div id="result-area" class="winner-list"></div>
         </div>
     </div>
@@ -48,20 +47,40 @@
 
         onValue(ref(db, 'drawData'), (snapshot) => {
             const data = snapshot.val();
-            if(data) {
-                const area = document.getElementById('result-area');
-                area.innerHTML = "ผู้โชคดี: ";
-                
-                let winners = [...data.names].sort(() => 0.5 - Math.random()).slice(0, data.amount);
-                
-                winners.forEach((name, i) => {
+            if(!data) return;
+
+            const countdown = document.getElementById('countdown');
+            const title = document.getElementById('title');
+            const resultArea = document.getElementById('result-area');
+            
+            resultArea.innerHTML = "";
+            let count = 3;
+
+            const timer = setInterval(() => {
+                countdown.innerText = count > 0 ? count : "เริ่ม!";
+                count--;
+                if(count < -1) {
+                    clearInterval(timer);
+                    countdown.style.display = "none";
+                    title.innerText = "🎉 ผู้โชคดีคือ! 🎉";
+                    showWinners(data.names, data.amount);
+                }
+            }, 1000);
+        });
+
+        function showWinners(names, amount) {
+            const area = document.getElementById('result-area');
+            let winners = [...names].sort(() => 0.5 - Math.random()).slice(0, amount);
+            
+            winners.forEach((name, i) => {
+                setTimeout(() => {
                     const span = document.createElement('span');
                     span.className = 'winner-item';
-                    span.innerHTML = `<span>🐮 ${name}</span> ${i < winners.length - 1 ? '🌿' : ''}`;
+                    span.innerHTML = `🐮 ${name} 🌿`;
                     area.appendChild(span);
-                });
-            }
-        });
+                }, i * 1000);
+            });
+        }
     </script>
 </body>
 </html>
