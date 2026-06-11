@@ -2,69 +2,454 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Lucky Draw — Display</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { 
-            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; 
-            background: url('https://images.unsplash.com/photo-1500622944204-b135684e99fd?q=80&w=2000') center/cover;
-            font-family: 'Kanit', sans-serif; overflow: hidden; 
-        }
-        
-        /* กล่อง UI สุดหรู */
-        .glass-box { 
-            background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(15px);
-            padding: 50px 80px; 
-            border-radius: 30px; 
-            border: 4px solid #b8860b; /* สีทอง */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3); 
-            text-align: center; 
-            max-width: 90%;
-            position: relative;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        #status { font-size: 3rem; color: #1a4314; font-weight: 600; margin-bottom: 30px; }
-        
-        /* รายชื่อเรียงเป็นแถว */
-        #result-area { 
-            font-size: 2.5rem; color: #2d5a27; font-weight: 600;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; 
+        /* ====== SKY ====== */
+        .sky {
+            position: fixed; inset: 0;
+            background: linear-gradient(180deg, #3a7bd5 0%, #87ceeb 40%, #b8e0f7 65%, #c6f0c2 82%, #52b788 100%);
+            z-index: 0;
         }
-        .winner-item { display: flex; align-items: center; gap: 10px; animation: fadeIn 0.8s ease; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; } }
+
+        /* ====== SUN ====== */
+        .sun {
+            position: fixed; top: 40px; left: 90px;
+            width: 90px; height: 90px;
+            background: radial-gradient(circle, #fff5a0 40%, #ffd700 75%, #ffb700 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 0 18px rgba(255,230,50,0.18), 0 0 0 36px rgba(255,230,50,0.1);
+            z-index: 1;
+            animation: sunPulse 5s ease-in-out infinite;
+        }
+        @keyframes sunPulse {
+            0%,100% { box-shadow: 0 0 0 18px rgba(255,230,50,0.18), 0 0 0 36px rgba(255,230,50,0.1); }
+            50%      { box-shadow: 0 0 0 28px rgba(255,230,50,0.25), 0 0 0 55px rgba(255,230,50,0.12); }
+        }
+
+        /* ====== CLOUDS ====== */
+        .clouds { position: fixed; top: 0; left: 0; width: 100%; z-index: 1; pointer-events: none; }
+        .cloud {
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50px;
+        }
+        .cloud::before, .cloud::after {
+            content: ''; position: absolute;
+            background: rgba(255,255,255,0.9); border-radius: 50%;
+        }
+        .c1 { width: 160px; height: 52px; top: 70px; left: -200px; animation: drift 24s linear infinite; }
+        .c1::before { width: 80px; height: 80px; top: -42px; left: 25px; }
+        .c1::after  { width: 60px; height: 60px; top: -30px; left: 72px; }
+
+        .c2 { width: 110px; height: 36px; top: 160px; left: -140px; animation: drift 32s linear 10s infinite; opacity: 0.7; }
+        .c2::before { width: 55px; height: 55px; top: -30px; left: 15px; }
+        .c2::after  { width: 44px; height: 44px; top: -24px; left: 50px; }
+
+        .c3 { width: 200px; height: 60px; top: 50px; left: -250px; animation: drift 20s linear 5s infinite; opacity: 0.75; }
+        .c3::before { width: 95px; height: 95px; top: -50px; left: 30px; }
+        .c3::after  { width: 72px; height: 72px; top: -38px; left: 90px; }
+
+        @keyframes drift { from { transform: translateX(0); } to { transform: translateX(115vw); } }
+
+        /* ====== MOUNTAIN SILHOUETTE ====== */
+        .mountain {
+            position: fixed; bottom: 140px; left: 0; width: 100%; z-index: 1;
+            pointer-events: none;
+        }
+        .mountain svg { display: block; }
+
+        /* ====== GROUND ====== */
+        .ground {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 160px;
+            background: linear-gradient(180deg, #74c69d 0%, #52b788 30%, #2d6a4f 100%);
+            z-index: 2;
+        }
+        .ground-front {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: linear-gradient(180deg, #95d5b2 0%, #52b788 100%);
+            z-index: 3;
+        }
+
+        /* ====== TREES ====== */
+        .trees { position: fixed; bottom: 130px; left: 0; width: 100%; z-index: 2; pointer-events: none; }
+        .tree { position: absolute; bottom: 0; }
+        .tree-trunk { margin: 0 auto; background: #7f5539; border-radius: 4px; }
+        .tree-leaves { border-radius: 50% 50% 45% 45%; margin: 0 auto; animation: treeSway 4s ease-in-out infinite; transform-origin: bottom center; }
+
+        .t1 { left: 2%; }  .t1 .tree-trunk { width:16px;height:45px; } .t1 .tree-leaves { width:70px;height:85px;background:#1b4332; animation-delay:0s; }
+        .t2 { left: 9%; }  .t2 .tree-trunk { width:12px;height:32px; } .t2 .tree-leaves { width:52px;height:62px;background:#2d6a4f; animation-delay:0.7s; }
+        .t3 { left: 16%; } .t3 .tree-trunk { width:14px;height:38px; } .t3 .tree-leaves { width:60px;height:75px;background:#1b4332; animation-delay:1.4s; }
+        .t4 { right: 2%; } .t4 .tree-trunk { width:16px;height:45px; } .t4 .tree-leaves { width:70px;height:88px;background:#1b4332; animation-delay:0.3s; }
+        .t5 { right: 10%; } .t5 .tree-trunk { width:13px;height:35px; } .t5 .tree-leaves { width:55px;height:68px;background:#2d6a4f; animation-delay:1s; }
+        .t6 { right: 18%; } .t6 .tree-trunk { width:12px;height:30px; } .t6 .tree-leaves { width:48px;height:60px;background:#1b4332; animation-delay:0.5s; }
+
+        @keyframes treeSway {
+            0%,100% { transform: rotate(-2deg); }
+            50%      { transform: rotate(2deg); }
+        }
+
+        /* ====== FENCE ====== */
+        .fence {
+            position: fixed; bottom: 60px; left: 0; width: 100%; z-index: 4;
+            pointer-events: none; display: flex; align-items: flex-end;
+        }
+        .fence svg { width: 100%; }
+
+        /* ====== GRASS TUFTS ====== */
+        .grass-tufts {
+            position: fixed; bottom: 58px; left: 0; width: 100%; z-index: 5;
+            display: flex; gap: 0; pointer-events: none;
+        }
+        .tuft { font-size: 1.5rem; animation: tuftSway 3s ease-in-out infinite; }
+        .tuft:nth-child(odd) { animation-direction: reverse; }
+        @keyframes tuftSway {
+            0%,100% { transform: rotate(-5deg); }
+            50%      { transform: rotate(5deg); }
+        }
+
+        /* ====== WALKING COWS ====== */
+        .walking-cow {
+            position: fixed; z-index: 6;
+            font-size: 3rem;
+            filter: drop-shadow(3px 5px 5px rgba(0,0,0,0.25));
+        }
+        .cow1 { bottom: 65px; animation: cowWalk1 20s linear infinite; }
+        .cow2 { bottom: 70px; animation: cowWalk2 28s linear 7s infinite; font-size: 2.4rem; opacity: 0.85; }
+        @keyframes cowWalk1 {
+            0%   { left: -100px; transform: scaleX(1); }
+            49%  { left: calc(100vw + 100px); transform: scaleX(1); }
+            50%  { left: calc(100vw + 100px); transform: scaleX(-1); }
+            99%  { left: -100px; transform: scaleX(-1); }
+            100% { left: -100px; transform: scaleX(1); }
+        }
+        @keyframes cowWalk2 {
+            0%   { left: calc(100vw + 100px); transform: scaleX(-1); }
+            49%  { left: -100px; transform: scaleX(-1); }
+            50%  { left: -100px; transform: scaleX(1); }
+            99%  { left: calc(100vw + 100px); transform: scaleX(1); }
+            100% { left: calc(100vw + 100px); transform: scaleX(-1); }
+        }
+
+        /* ====== BUTTERFLIES / BIRDS ====== */
+        .butterfly {
+            position: fixed; z-index: 7; font-size: 1.6rem;
+            animation: butterflyFly 12s ease-in-out infinite;
+        }
+        .bf1 { top: 20%; animation-delay: 0s; }
+        .bf2 { top: 35%; animation-delay: 4s; font-size: 1.2rem; }
+        @keyframes butterflyFly {
+            0%   { left: -60px; top: 20%; }
+            25%  { top: 15%; }
+            50%  { left: 50vw; top: 30%; }
+            75%  { top: 18%; }
+            100% { left: 110vw; top: 20%; }
+        }
+
+        /* ====== MAIN GLASS BOX ====== */
+        .main-box {
+            position: relative; z-index: 20;
+            background: rgba(254, 250, 224, 0.82);
+            backdrop-filter: blur(18px);
+            padding: 52px 70px 48px;
+            border-radius: 36px;
+            border: 4px solid rgba(212, 163, 115, 0.8);
+            box-shadow:
+                0 30px 70px rgba(27, 67, 50, 0.3),
+                0 0 0 1px rgba(255,255,255,0.5) inset,
+                0 4px 0 rgba(255,255,255,0.6) inset;
+            text-align: center;
+            max-width: 90vw;
+            min-width: 420px;
+        }
+
+        /* header */
+        .header-icon { font-size: 2.8rem; display: block; margin-bottom: 6px; }
+        #status {
+            font-size: 2.6rem;
+            color: #1b4332;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 6px rgba(255,255,255,0.7);
+            letter-spacing: 0.5px;
+        }
+        .status-sub {
+            font-size: 1rem;
+            color: #52b788;
+            font-weight: 400;
+            margin-bottom: 32px;
+            opacity: 0.9;
+        }
+
+        /* ====== RESULT AREA ====== */
+        #result-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px 28px;
+            min-height: 60px;
+        }
+
+        .winner-card {
+            display: flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, #d8f3dc 0%, #b7e4c7 100%);
+            border: 2px solid #74c69d;
+            border-radius: 20px;
+            padding: 14px 24px;
+            box-shadow: 0 6px 18px rgba(45,106,79,0.18), 0 2px 0 rgba(255,255,255,0.8) inset;
+            animation: popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1b4332;
+        }
+        .winner-card .w-icon { font-size: 2rem; }
+        .winner-card .w-num {
+            background: #2d6a4f;
+            color: #fefae0;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.4) translateY(30px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* ====== WAITING ANIMATION ====== */
+        .waiting {
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .cow-spin {
+            font-size: 4rem;
+            animation: cowBounce 1s ease-in-out infinite;
+            display: block;
+        }
+        @keyframes cowBounce {
+            0%,100% { transform: translateY(0) rotate(-5deg); }
+            50%      { transform: translateY(-14px) rotate(5deg); }
+        }
+        .waiting-text { color: #52b788; font-size: 1.1rem; }
+
+        /* ====== CONFETTI ====== */
+        .confetti-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 99; overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear forwards;
+            top: -20px;
+        }
+        @keyframes confettiFall {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ribbon decoration */
+        .ribbon {
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(90deg, #e9c46a, #f4a261, #e9c46a);
+            color: #1b4332; font-size: 0.85rem; font-weight: 700;
+            padding: 5px 24px; border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(233,196,106,0.4);
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
+        /* ====== STARS (ambient) ====== */
+        .star {
+            position: fixed; z-index: 1;
+            width: 4px; height: 4px; border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        @keyframes twinkle { 0%,100% { opacity: 0.2; } 50% { opacity: 0.9; } }
     </style>
 </head>
 <body>
-    <div class="glass-box">
-        <h1 id="status">ผู้โชคดีคือ:</h1>
-        <div id="result-area"></div>
+
+<!-- SCENE -->
+<div class="sky"></div>
+<div class="sun"></div>
+<div class="clouds">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+</div>
+
+<!-- Mountain silhouette -->
+<div class="mountain">
+    <svg viewBox="0 0 1440 200" preserveAspectRatio="none" height="200" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 200 L0 140 L120 80 L240 120 L380 50 L520 110 L660 40 L800 100 L920 60 L1060 130 L1200 70 L1360 120 L1440 90 L1440 200 Z"
+              fill="rgba(82,183,136,0.4)"/>
+        <path d="M0 200 L0 160 L100 110 L200 145 L320 95 L450 130 L580 85 L720 125 L860 95 L1000 140 L1150 100 L1300 140 L1440 115 L1440 200 Z"
+              fill="rgba(45,106,79,0.45)"/>
+    </svg>
+</div>
+
+<!-- Trees -->
+<div class="trees">
+    <div class="tree t1"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t2"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t3"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t4"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t5"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+    <div class="tree t6"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+</div>
+
+<div class="ground"></div>
+<div class="ground-front"></div>
+
+<!-- Fence -->
+<div class="fence">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60" xmlns="http://www.w3.org/2000/svg">
+        <!-- horizontal rails -->
+        <rect x="0" y="12" width="1440" height="8" rx="4" fill="#8b5e3c"/>
+        <rect x="0" y="38" width="1440" height="8" rx="4" fill="#7f5539"/>
+        <!-- vertical posts -->
+        <script>
+        </script>
+    </svg>
+</div>
+
+<!-- Walking cows -->
+<div class="walking-cow cow1">🐄</div>
+<div class="walking-cow cow2">🐮</div>
+
+<!-- Butterflies -->
+<div class="butterfly bf1">🦋</div>
+<div class="butterfly bf2">🌿</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- MAIN DISPLAY BOX -->
+<div class="main-box" id="mainBox">
+    <div class="ribbon">🌾 Lucky Farm Draw 🌾</div>
+
+    <span class="header-icon">🏆</span>
+    <h1 id="status">ผู้โชคดีคือ...</h1>
+    <p class="status-sub" id="statusSub">รอรับข้อมูลจากผู้ควบคุม</p>
+
+    <div id="result-area">
+        <div class="waiting">
+            <span class="cow-spin">🐄</span>
+            <span class="waiting-text">รอการสุ่ม...</span>
+        </div>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+<!-- Generate fence posts via JS (clean SVG) -->
+<script>
+// Add fence posts dynamically
+const fenceSvg = document.querySelector('.fence svg');
+for (let x = 20; x < 1440; x += 72) {
+    const post = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    post.setAttribute("x", x);
+    post.setAttribute("y", "4");
+    post.setAttribute("width", "12");
+    post.setAttribute("height", "52");
+    post.setAttribute("rx", "3");
+    post.setAttribute("fill", "#6f4e37");
+    fenceSvg.prepend(post);
+}
 
-        const db = getDatabase(initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" }));
+// Add grass tufts
+const grassDiv = document.createElement('div');
+grassDiv.className = 'grass-tufts';
+const tufts = ['🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱','🌿','🌱'];
+tufts.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'tuft';
+    d.textContent = t;
+    d.style.marginLeft = (i === 0 ? '0' : 'auto');
+    d.style.flexGrow = '1';
+    d.style.textAlign = i % 2 === 0 ? 'left' : 'right';
+    d.style.animationDelay = (i * 0.2) + 's';
+    grassDiv.appendChild(d);
+});
+document.body.appendChild(grassDiv);
+</script>
 
-        onValue(ref(db, 'drawData'), async (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-            const area = document.getElementById('result-area');
-            area.innerHTML = "";
-            
-            let winners = [...data.names].sort(() => 0.5 - Math.random()).slice(0, data.amount);
-            
-            for(let name of winners) {
-                const span = document.createElement('span');
-                span.className = 'winner-item';
-                // เรียงหน้าชื่อวัว และปิดท้ายด้วยใบไม้
-                span.innerHTML = `<span>🐮 ${name}</span> 🌿`;
-                area.appendChild(span);
-                await new Promise(r => setTimeout(r, 600));
-            }
-        });
-    </script>
+    const db = getDatabase(initializeApp({ databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" }));
+
+    const COLORS = ['#e9c46a','#f4a261','#e76f51','#a8dadc','#52b788','#d4a373'];
+
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        container.innerHTML = '';
+        for (let i = 0; i < 100; i++) {
+            const p = document.createElement('div');
+            p.className = 'confetti-piece';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+            p.style.width = (6 + Math.random() * 8) + 'px';
+            p.style.height = (6 + Math.random() * 8) + 'px';
+            p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            p.style.animationDuration = (2 + Math.random() * 3) + 's';
+            p.style.animationDelay = (Math.random() * 2) + 's';
+            container.appendChild(p);
+        }
+        setTimeout(() => container.innerHTML = '', 6000);
+    }
+
+    onValue(ref(db, 'drawData'), async (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const area = document.getElementById('result-area');
+        const statusEl = document.getElementById('status');
+        const subEl = document.getElementById('statusSub');
+
+        area.innerHTML = '';
+        statusEl.textContent = '🎲 กำลังสุ่ม...';
+        subEl.textContent = 'โปรดรอสักครู่';
+
+        // shuffle
+        const shuffled = [...data.names].sort(() => Math.random() - 0.5);
+        const winners = shuffled.slice(0, parseInt(data.amount));
+
+        await new Promise(r => setTimeout(r, 800));
+
+        statusEl.textContent = '🏆 ผู้โชคดีคือ!';
+        subEl.textContent = `จากการสุ่มทั้งหมด ${data.names.length} ท่าน`;
+
+        for (let i = 0; i < winners.length; i++) {
+            const card = document.createElement('div');
+            card.className = 'winner-card';
+            card.style.animationDelay = (i * 0.5) + 's';
+            card.innerHTML = `
+                <span class="w-num">${i + 1}</span>
+                <span class="w-icon">🐮</span>
+                <span>${winners[i]}</span>
+                <span>🌿</span>
+            `;
+            area.appendChild(card);
+            await new Promise(r => setTimeout(r, 550));
+        }
+
+        launchConfetti();
+    });
+</script>
 </body>
 </html>
