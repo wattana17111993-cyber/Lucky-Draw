@@ -5,26 +5,27 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { 
-            margin: 0; background: #0f2027; 
-            background: linear-gradient(135deg, #203a43, #2c5364);
-            font-family: 'Kanit', sans-serif; color: white;
+            margin: 0; 
+            background: linear-gradient(135deg, #a8e063, #56ab2f); 
+            font-family: 'Kanit', sans-serif; color: #2d5a27;
             display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
         }
-        .container { 
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
-            padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3); text-align: center; width: 80%;
+        .farm-container { 
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            padding: 50px; border-radius: 40px; border: 5px solid #fff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center; width: 85%;
         }
         .winner-card { 
-            display: inline-block; margin: 15px; padding: 20px 40px;
-            background: #fff; color: #2c5364; border-radius: 50px;
-            font-size: 2rem; font-weight: 600; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            display: inline-block; margin: 20px; padding: 20px 40px;
+            background: #fdfaf6; color: #4e342e; border-radius: 20px;
+            font-size: 2.5rem; font-weight: 600; border: 2px dashed #8d6e63;
+            box-shadow: 0 8px 0 #d7ccc8;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="title">💦 รอลุ้นผู้โชคดี...</h1>
+    <div class="farm-container">
+        <h1 id="title" style="font-size: 3.5rem;">🐄 สุ่มโชคจากฟาร์มเขียว 🌿</h1>
         <div id="result-area"></div>
     </div>
 
@@ -34,19 +35,19 @@
                 const {names, amount} = JSON.parse(e.newValue);
                 const area = document.getElementById('result-area');
                 area.innerHTML = "";
-                document.getElementById('title').innerText = "✨ กำลังสุ่มรางวัล ✨";
+                document.getElementById('title').innerText = "กำลังตามหาผู้โชคดี...";
                 
                 let winners = [...names].sort(() => 0.5 - Math.random()).slice(0, amount);
                 
                 setTimeout(() => {
-                    document.getElementById('title').innerText = "🎉 ขอแสดงความยินดีด้วย! 🎉";
+                    document.getElementById('title').innerText = "🎉 ยินดีกับผู้โชคดีจากฟาร์ม! 🎉";
                     winners.forEach((name, i) => {
                         setTimeout(() => {
                             const div = document.createElement('div');
                             div.className = 'winner-card';
-                            div.innerText = "⭐ " + name;
+                            div.innerText = "🐮 " + name;
                             area.appendChild(div);
-                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+                            confetti({ particleCount: 100, spread: 70, colors: ['#56ab2f', '#4e342e', '#ffffff'] });
                         }, i * 600);
                     });
                 }, 1500);
