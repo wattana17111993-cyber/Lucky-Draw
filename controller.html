@@ -1,36 +1,27 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Kanit', sans-serif; background: #fdfaf6; padding: 30px; }
-        .panel { background: #efebe9; padding: 30px; border-radius: 30px; border: 3px solid #8d6e63; }
-        textarea { width: 100%; height: 200px; border-radius: 15px; border: 2px solid #8d6e63; padding: 15px; background: #fff; font-size: 16px; }
-        button { 
-            width: 100%; margin-top: 20px; padding: 20px; border: none; border-radius: 50px; 
-            background: #56ab2f; color: white; font-size: 1.5rem; cursor: pointer; 
-            box-shadow: 0 5px 0 #2d5a27; transition: 0.2s;
-        }
-        button:active { transform: translateY(5px); box-shadow: 0 0 0; }
-    </style>
-</head>
-<body>
-    <div class="panel">
-        <h3>รายชื่อพนักงานในฟาร์ม</h3>
-        <textarea id="nameInput" placeholder="ก๊อปปี้รายชื่อมาวางที่นี่..."></textarea>
-        <select id="luckyAmount" style="width: 100%; padding: 15px; margin-top: 15px; border-radius: 10px;">
-            <option value="1">1 ท่าน</option>
-            <option value="5">5 ท่าน</option>
-        </select>
-        <button onclick="send()">เริ่มสุ่มรางวัล! 🌿</button>
-    </div>
+    <meta charset="UTF-8">
+    <title>Controller - Farm</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-    <script>
-        function send() {
-            const names = document.getElementById('nameInput').value.split('\n').filter(n=>n.trim());
+        const firebaseConfig = { databaseURL: "https://lucky-draw-45bdf-default-rtdb.firebaseio.com/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.sendDraw = function() {
+            const names = document.getElementById('nameInput').value.split('\n');
             const amount = document.getElementById('luckyAmount').value;
-            localStorage.setItem('songkranData', JSON.stringify({names, amount, time: Date.now()}));
+            set(ref(db, 'drawData'), { names, amount, timestamp: Date.now() });
+            alert("ส่งคำสั่งสุ่มไปยังหน้าจอแล้ว!");
         }
     </script>
+</head>
+<body>
+    <textarea id="nameInput"></textarea>
+    <select id="luckyAmount"><option value="1">1</option></select>
+    <button onclick="sendDraw()">สุ่ม!</button>
 </body>
 </html>
