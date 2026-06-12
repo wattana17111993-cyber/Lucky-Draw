@@ -416,14 +416,14 @@
             showToast(`⚠️ คงเหลือผู้มีสิทธิ์ ${eligible.length} ท่าน (น้อยกว่าที่เลือก)`, '#e9c46a');
         }
 
-        // ส่งเฉพาะรายชื่อที่ยังไม่เคยได้รางวัล
-        await set(ref(db, 'drawData'), null);
-        await set(ref(db, 'drawData'), { names: eligible, amount, time: Date.now() });
-
-        // บันทึกผู้ชนะ — หน้า index จะสุ่มจาก eligible อีกที
-        // เราไม่รู้ว่าใครจะชนะ ให้ index.html เขียนกลับมาแทน
-        // แต่เพื่อง่าย: สุ่มที่นี่ด้วยแล้วบันทึก pastWinners ทันที
+        // สุ่มผู้ชนะที่นี่โดยตรง
         const winners = [...eligible].sort(() => Math.random() - 0.5).slice(0, Math.min(amount, eligible.length));
+
+        // ส่งผลลัพธ์ที่สุ่มแล้วไปแสดงผล
+        await set(ref(db, 'drawData'), null);
+        await set(ref(db, 'drawData'), { winners, totalNames: allNames.length, time: Date.now() });
+
+        // บันทึกผู้ชนะสะสม
         const newPast = [...past, ...winners];
         await set(ref(db, 'pastWinners'), newPast);
 
