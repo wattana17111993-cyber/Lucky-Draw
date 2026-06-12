@@ -413,20 +413,51 @@ document.body.appendChild(grassDiv);
         setTimeout(() => container.innerHTML = '', 6000);
     }
 
+    let isFirstLoad = true;
+    let lastTime = null;
+
     onValue(ref(db, 'drawData'), async (snapshot) => {
         const data = snapshot.val();
-        if (!data) return;
-        if (!data.winners || !Array.isArray(data.winners) || data.winners.length === 0) return;
+        if (!data) { isFirstLoad = false; return; }
+        if (!data.winners || !Array.isArray(data.winners) || data.winners.length === 0) { isFirstLoad = false; return; }
 
         const area = document.getElementById('result-area');
         const statusEl = document.getElementById('status');
         const subEl = document.getElementById('statusSub');
+        const winners = data.winners;
+
+        // ===== โหลดครั้งแรก: แสดงผลล่าสุดทันที ไม่เล่น animation =====
+        if (isFirstLoad) {
+            isFirstLoad = false;
+            lastTime = data.time;
+
+            area.innerHTML = '';
+            statusEl.textContent = '🏆 ผู้โชคดีคือ!';
+            subEl.textContent = `จากการสุ่มทั้งหมด ${data.totalNames || winners.length} ท่าน`;
+
+            winners.forEach((name, i) => {
+                const card = document.createElement('div');
+                card.className = 'winner-card';
+                card.style.animation = 'none';
+                card.style.opacity = '1';
+                card.innerHTML = `
+                    <span class="w-num">${i + 1}</span>
+                    <span class="w-icon">🐮</span>
+                    <span>${name}</span>
+                    <span>🌿</span>
+                `;
+                area.appendChild(card);
+            });
+            return;
+        }
+
+        // ===== มีการสุ่มใหม่จริง (time เปลี่ยน) =====
+        if (data.time === lastTime) return;
+        lastTime = data.time;
 
         area.innerHTML = '';
         statusEl.textContent = '🎲 กำลังสุ่ม...';
         subEl.textContent = 'โปรดรอสักครู่';
-
-        const winners = data.winners;
 
         await new Promise(r => setTimeout(r, 800));
 
