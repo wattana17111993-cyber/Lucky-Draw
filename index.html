@@ -341,7 +341,7 @@
 
 <!-- MAIN DISPLAY BOX -->
 <div class="main-box" id="mainBox">
-    <div class="ribbon">🌾 ฟาร์มโชคชัย 🌾</div>
+    <div class="ribbon">🌾 Lucky Farm Draw 🌾</div>
 
     <span class="header-icon">🏆</span>
     <h1 id="status">ผู้โชคดีคือ...</h1>
@@ -416,6 +416,7 @@ document.body.appendChild(grassDiv);
     onValue(ref(db, 'drawData'), async (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
+        if (!data.names || !Array.isArray(data.names) || data.names.length === 0) return;
 
         const area = document.getElementById('result-area');
         const statusEl = document.getElementById('status');
