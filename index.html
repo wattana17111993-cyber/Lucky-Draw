@@ -341,7 +341,7 @@
 
 <!-- MAIN DISPLAY BOX -->
 <div class="main-box" id="mainBox">
-    <div class="ribbon">🌾 Lucky Farm Draw 🌾</div>
+    <div class="ribbon">🌾 ฟาร์มโชคชัย 🌾</div>
 
     <span class="header-icon">🏆</span>
     <h1 id="status">ผู้โชคดีคือ...</h1>
@@ -416,7 +416,7 @@ document.body.appendChild(grassDiv);
     onValue(ref(db, 'drawData'), async (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
-        if (!data.names || !Array.isArray(data.names) || data.names.length === 0) return;
+        if (!data.winners || !Array.isArray(data.winners) || data.winners.length === 0) return;
 
         const area = document.getElementById('result-area');
         const statusEl = document.getElementById('status');
@@ -426,14 +426,12 @@ document.body.appendChild(grassDiv);
         statusEl.textContent = '🎲 กำลังสุ่ม...';
         subEl.textContent = 'โปรดรอสักครู่';
 
-        // shuffle
-        const shuffled = [...data.names].sort(() => Math.random() - 0.5);
-        const winners = shuffled.slice(0, parseInt(data.amount));
+        const winners = data.winners;
 
         await new Promise(r => setTimeout(r, 800));
 
         statusEl.textContent = '🏆 ผู้โชคดีคือ!';
-        subEl.textContent = `จากการสุ่มทั้งหมด ${data.names.length} ท่าน`;
+        subEl.textContent = `จากการสุ่มทั้งหมด ${data.totalNames || winners.length} ท่าน`;
 
         for (let i = 0; i < winners.length; i++) {
             const card = document.createElement('div');
