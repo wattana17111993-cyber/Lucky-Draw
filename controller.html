@@ -321,7 +321,7 @@
 
     <!-- Winner pool status -->
     <div id="poolStatus" style="
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         padding: 10px 16px;
         border-radius: 12px;
         background: rgba(116,198,157,0.2);
@@ -332,15 +332,27 @@
     ">
         <span id="poolText">🌿 โหลดข้อมูล...</span>
         <button id="resetBtn" onclick="resetWinners()" style="
-            background: #e76f51; color: white; border: none;
+            background: #e9c46a; color: #1b4332; border: none;
             border-radius: 20px; padding: 4px 14px;
             font-family: 'Kanit', sans-serif; font-size: 0.85rem;
             cursor: pointer; font-weight: 600;
             transition: opacity .2s;
         " onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-            🔄 รีเซ็ต
+            🔄 รีเซ็ตผู้ชนะ
         </button>
     </div>
+
+    <button id="resetAllBtn" onclick="resetAll()" style="
+        width: 100%;
+        background: #e76f51; color: white; border: none;
+        border-radius: 14px; padding: 10px;
+        font-family: 'Kanit', sans-serif; font-size: 0.95rem;
+        cursor: pointer; font-weight: 600;
+        margin-bottom: 20px;
+        transition: opacity .2s;
+    " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        🗑️ รีเซ็ตทั้งหมด (ล้างชื่อ + ผู้ชนะ)
+    </button>
 
     <button class="draw-btn" id="drawBtn">
         <span class="btn-cow">🐄</span> เริ่มสุ่ม!
@@ -382,7 +394,17 @@
     window.resetWinners = async () => {
         if (!confirm('รีเซ็ตรายชื่อผู้รับรางวัลทั้งหมด?')) return;
         await set(ref(db, 'pastWinners'), []);
-        showToast('🔄 รีเซ็ตเรียบร้อย!', '#e76f51');
+        showToast('🔄 รีเซ็ตผู้ชนะเรียบร้อย!', '#e9c46a');
+        updatePoolStatus();
+    };
+
+    // ---- Reset ทั้งหมด: ล้างชื่อ + ผู้ชนะ + ผลการสุ่ม ----
+    window.resetAll = async () => {
+        if (!confirm('รีเซ็ตทั้งหมด? ช่องกรอกชื่อและรายชื่อผู้ชนะสะสมจะถูกล้างทั้งหมด')) return;
+        document.getElementById('nameInput').value = '';
+        await set(ref(db, 'pastWinners'), []);
+        await set(ref(db, 'drawData'), null);
+        showToast('🗑️ รีเซ็ตทั้งหมดเรียบร้อย!', '#e76f51');
         updatePoolStatus();
     };
 
